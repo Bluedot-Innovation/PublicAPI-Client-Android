@@ -1,0 +1,505 @@
+package examples.openapi.android.bluedotinnovation.com.openapiexamples;
+
+import android.os.AsyncTask;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Random;
+
+/**
+ * @author Bluedot Innovation
+ */
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+
+    private final static String DEBUG_TAG = "MainActivity";
+
+    // This is the customer API key
+    // https://www.pointaccess.bluedot.com.au/pointaccess-v1/dashboard.html -> Account Management -> Edit Profile
+    private final static String CUSTOMER_API_KEY = "";
+
+    private TextView tvLogView;
+    private Button bPostApp; //post App
+    private Button bPostZone; //post Zone
+    private Button bPostFence; //post Fen
+    private Button bPostMessageAction;
+    private Button bDeleteFence;
+
+    private String lastApiKey; // the key returned from backend for last created app; will be required to add zones
+    private String zoneId= null; // Zone Id of the create Zone
+    private String fenceId = null;  //Fence Id of the created fence
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        tvLogView = (TextView) findViewById(R.id.tvLogView);
+        bPostApp = (Button) findViewById(R.id.bPostApp);
+        bPostZone = (Button) findViewById(R.id.bPostZone);
+        bPostFence = (Button) findViewById(R.id.bPostFence);
+        bPostMessageAction = (Button) findViewById(R.id.bPostMessageAction);
+        bDeleteFence = (Button) findViewById(R.id.bDeleteFence);
+        bPostApp.setOnClickListener(this);
+        bPostZone.setOnClickListener(this);
+        bPostFence.setOnClickListener(this);
+        bPostMessageAction.setOnClickListener(this);
+        bDeleteFence.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()){
+            case R.id.bPostApp:
+                doPostApplication();
+                break;
+            case R.id.bPostZone:
+                doPostZone();
+                break;
+            case R.id.bPostFence:
+               doPostFence();
+                break;
+            case R.id.bPostMessageAction:
+                doPostMessageAction();
+                break;
+            case R.id.bDeleteFence:
+                doDeleteFence();
+                break;
+
+        }
+    }
+
+    private String getApiKeyFromPreviousRequestResult(String previousRequestResult) {
+        String result = null;
+        try{
+            JSONObject jsonObject = new JSONObject(previousRequestResult);
+            result = jsonObject.getString("apiKey");
+        } catch (JSONException e){
+
+        }
+        return result;
+    }
+
+    private String getZoneIdFromResult(String result) {
+        String Id = null;
+        try{
+            JSONObject jsonObject = new JSONObject(result);
+            if(jsonObject.has("zoneId")){
+                Id = jsonObject.getString("zoneId");
+            }
+        } catch (JSONException e){
+
+        }
+        return Id;
+    }
+
+    private String getFenceIdFromResult(String result) {
+        String Id = null;
+        try{
+
+            JSONObject jsonObject = new JSONObject(result);
+            if(jsonObject.has("fencesUpdated")){
+                JSONArray jsonArray = jsonObject.getJSONArray("fencesUpdated");
+                Id = jsonArray.getJSONObject(0).getString("fenceId");
+            }
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        return Id;
+    }
+
+    private void doPostApplication(){
+        executePostApplication(CUSTOMER_API_KEY);
+    }
+
+    private void doPostZone(){
+        if (lastApiKey != null){
+            executePostZone(CUSTOMER_API_KEY, lastApiKey);
+        } else {
+            tvLogView.setText("apiKey not found");
+        }
+    }
+
+    private void doPostFence(){
+        if(lastApiKey!=null){
+            if(zoneId!=null){
+                executePostFence(CUSTOMER_API_KEY, lastApiKey, zoneId);
+            }
+            else{
+                tvLogView.setText("zoneId not found");
+            }
+        }
+        else{
+            tvLogView.setText("apiKey not found");
+        }
+
+    }
+
+    private void doPostMessageAction(){
+        if(lastApiKey!=null){
+            if(zoneId!=null){
+              executePostMessageAction(CUSTOMER_API_KEY,lastApiKey,zoneId);
+            }
+            else{
+                tvLogView.setText("zoneId not found");
+            }
+        }
+        else{
+            tvLogView.setText("apiKey not found");
+        }
+    }
+
+    private void doDeleteFence(){
+        if(zoneId!=null){
+            if(fenceId!=null){
+                    executeDeleteFence(CUSTOMER_API_KEY,zoneId,fenceId);
+            }
+            else{
+                tvLogView.setText("fenceId not found");
+            }
+        }else{
+            tvLogView.setText("zoneId not found");
+        }
+    }
+
+    private void handleResult(String result){
+        tvLogView.setText(result);
+        // now try to see if any of API keys are updated
+        if (lastApiKey == null){
+            lastApiKey = getApiKeyFromPreviousRequestResult(result);
+        }
+
+        //try to get zone Id
+        if(zoneId == null){
+            zoneId = getZoneIdFromResult(result);
+        }
+
+        if(fenceId == null){
+            fenceId = getFenceIdFromResult(result);
+        }
+    }
+
+
+
+
+    //===============================================================
+    //====== The part below is going to documentation examples ======
+    //========== Must be modular and working in isolation ===========
+    //===============================================================
+
+    // The OpenAPI Urls
+    private final static String OPENAPI_URL_APPLICATIONS = "https://api.bluedotinnovation.com/1/applications/";
+    private final static String OPENAPI_URL_ZONES = "https://api.bluedotinnovation.com/1/zones/";
+    private final static String OPENAPI_URL_FENCE = "https://api.bluedotinnovation.com/1/fences";
+    private final static String OPENAPI_URL_MESSAGE_ACTION = "https://api.bluedotinnovation.com/1/actions/";
+
+
+    private String generatePOSTApplicationRequest(String customerApiKey){
+        String result = null;
+        // app name and package name must be unique
+        String uniquePostfix = generateRandomString();
+        String appName = "OpenAPI examples " + uniquePostfix;
+        String packageName = "bluedotinnovation.com.openapi.android.examples.com." + uniquePostfix;
+        // form the JSON string for request
+        try{
+            JSONObject applicationObject = new JSONObject();
+            applicationObject.put("name", appName);
+            applicationObject.put("packageName", packageName);
+            applicationObject.put("nextRuleUpdateIntervalFormatted", "10:00");
+            JSONObject contentObject = new JSONObject();
+            contentObject.put("application", applicationObject);
+            JSONObject securityObject = new JSONObject();
+            securityObject.put("customerApiKey", customerApiKey);
+            JSONObject resultObject = new JSONObject();
+            resultObject.put("security", securityObject);
+            resultObject.put("content", contentObject);
+            result = resultObject.toString();
+        } catch (JSONException e){
+            Log.e(DEBUG_TAG, "generatePOSTApplicationRequest(): " + e );
+        }
+        return result;
+    }
+
+    private String generatePOSTZoneRequest(String customerApiKey, String apiKey){
+        String result = null;
+        // zone name must be unique
+        String uniquePostfix = generateRandomString();
+        String zoneName = "Zone " + uniquePostfix;
+        // form the JSON string for request
+        try{
+            JSONObject fromObject = new JSONObject();
+            fromObject.put("time", "09:01");
+            fromObject.put("period", "am");
+            JSONObject toObject = new JSONObject();
+            toObject.put("time", "11:59");
+            toObject.put("period", "am");
+            JSONObject timeActiveObject = new JSONObject();
+            timeActiveObject.put("from", fromObject);
+            timeActiveObject.put("to", toObject);
+            JSONObject zoneObject = new JSONObject();
+            zoneObject.put("zoneName", zoneName);
+            zoneObject.put("minimumRetriggerTime", "00:06");
+            zoneObject.put("timeActive", timeActiveObject);
+            JSONObject contentObject = new JSONObject();
+            contentObject.put("zone", zoneObject);
+            JSONObject securityObject = new JSONObject();
+            securityObject.put("apiKey", apiKey);
+            securityObject.put("customerApiKey", customerApiKey);
+            JSONObject resultObject = new JSONObject();
+            resultObject.put("security", securityObject);
+            resultObject.put("content", contentObject);
+            result = resultObject.toString();
+        } catch (JSONException e){
+            Log.e(DEBUG_TAG, "generatePOSTZoneRequest(): " + e );
+        }
+        return result;
+    }
+
+    private String generatePOSTFenceRequest(String customerApiKey, String apiKey, String zoneId){
+        String result = null;
+        // form the JSON string for request
+        try{
+            JSONObject centerObject = new JSONObject();
+            centerObject.put("latitude", "-37.8159544565362");
+            centerObject.put("longitude", "144.9723565578461");
+            JSONObject circleObject = new JSONObject();
+            circleObject.put("name", "Test Circular fence with 8M radius");
+            circleObject.put("color", "#000fff");
+            circleObject.put("radius", "8");
+            circleObject.put("center",centerObject);
+            JSONArray circlesArray = new JSONArray();
+            circlesArray.put(circleObject);
+            JSONObject fencesObject = new JSONObject();
+            fencesObject.put("circles", circlesArray);
+            JSONObject zoneObject = new JSONObject();
+            zoneObject.put("zoneId",zoneId);
+            zoneObject.put("fences", fencesObject);
+            JSONObject contentObject = new JSONObject();
+            contentObject.put("zone", zoneObject);
+            JSONObject securityObject = new JSONObject();
+            securityObject.put("apiKey", apiKey);
+            securityObject.put("customerApiKey", customerApiKey);
+            JSONObject resultObject = new JSONObject();
+            resultObject.put("security", securityObject);
+            resultObject.put("content", contentObject);
+            result = resultObject.toString();
+        } catch (JSONException e){
+            Log.e(DEBUG_TAG, "generatePOSTFenceRequest(): " + e );
+        }
+        return result;
+    }
+
+
+    private String generatePOSTMessageActionRequest(String customerApiKey, String apiKey,String zoneId){
+        String result = null;
+        // form the JSON string for request
+        try{
+            JSONObject messageActionObject = new JSONObject();
+            messageActionObject.put("name", "A Message Action");
+            messageActionObject.put("title", "This is a sample title");
+            messageActionObject.put("message", "This is a sample message");
+            JSONArray messageActionArray = new JSONArray();
+            messageActionArray.put(messageActionObject);
+            JSONObject actionObject = new JSONObject();
+            actionObject.put("messageActions",messageActionArray);
+            JSONObject zoneObject = new JSONObject();
+            zoneObject.put("zoneId",zoneId);
+            zoneObject.put("actions", actionObject);
+            JSONObject contentObject = new JSONObject();
+            contentObject.put("zone", zoneObject);
+            JSONObject securityObject = new JSONObject();
+            securityObject.put("apiKey", apiKey);
+            securityObject.put("customerApiKey", customerApiKey);
+            JSONObject resultObject = new JSONObject();
+            resultObject.put("security", securityObject);
+            resultObject.put("content", contentObject);
+            result = resultObject.toString();
+        } catch (JSONException e){
+            Log.e(DEBUG_TAG, "generatePOSTMessageActionRequest(): " + e );
+        }
+        return result;
+    }
+
+
+    private String generateDELETEFenceRequest(String customerApiKey,String zoneId, String fenceId){
+        String url = null;
+        url = OPENAPI_URL_FENCE + "?customerApiKey=" +customerApiKey+"&zoneId="+zoneId+"&fenceId=" + fenceId;
+        return url;
+    }
+
+    private void executePostApplication(String customerApiKey){
+        String postData = generatePOSTApplicationRequest(customerApiKey);
+        new ExecutePostRequest().execute(new String[]{OPENAPI_URL_APPLICATIONS, postData} );
+    }
+
+    private void executePostZone(String customerApiKey, String apiKey){
+        String postData = generatePOSTZoneRequest(customerApiKey, apiKey);
+        new ExecutePostRequest().execute(new String[]{OPENAPI_URL_ZONES, postData} );
+    }
+
+    private void executePostFence(String customerApiKey, String apiKey,String zoneId) {
+        String postData = generatePOSTFenceRequest(customerApiKey, apiKey, zoneId);
+        new ExecutePostRequest().execute(new String[]{OPENAPI_URL_FENCE, postData} );
+    }
+
+    private void executePostMessageAction(String customerApiKey, String apiKey,String zoneId) {
+        String postData = generatePOSTMessageActionRequest(customerApiKey, apiKey, zoneId);
+        new ExecutePostRequest().execute(new String[]{OPENAPI_URL_MESSAGE_ACTION, postData} );
+    }
+
+    private void executeDeleteFence(String customerApiKey, String zoneId,String fenceId) {
+        String postDataUrl = generateDELETEFenceRequest(customerApiKey, zoneId, fenceId);
+        new ExecuteDeleteRequest().execute(new String[]{postDataUrl} );
+    }
+
+    // AsyncTask to perform the POST communication
+    private class ExecutePostRequest extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            return executePost(params[0], params[1]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            // Handle result if needed
+            handleResult(result);
+        }
+    }
+
+    public String executePost(String targetURL, String postData)
+    {
+        URL url;
+        HttpURLConnection connection = null;
+        Log.d(DEBUG_TAG, "executePost(): targetURL=" + targetURL);
+        Log.d(DEBUG_TAG, "executePost(): postData=" + postData);
+        try {
+            // Get binary data
+            byte[] outputBytes = postData.getBytes();
+            //Create connection
+            url = new URL(targetURL);
+            connection = (HttpURLConnection)url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Content-Length", "" + Integer.toString(outputBytes.length));
+            connection.setUseCaches(false);
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+
+            //Send request
+            OutputStream wr = connection.getOutputStream();
+            wr.write(outputBytes);
+            wr.flush();
+            wr.close();
+
+            int http_status = connection.getResponseCode();
+            Log.d(DEBUG_TAG, "executePost(): http_status=" + http_status);
+
+            //Get Response
+            InputStream is = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            String line;
+            StringBuffer response = new StringBuffer();
+            while((line = rd.readLine()) != null) {
+                response.append(line);
+                response.append('\r');
+            }
+            rd.close();
+            return response.toString();
+
+        } catch (Exception e) {
+            String errorMessage =  e.toString();
+            Log.d(DEBUG_TAG, "executePost(): " + errorMessage);
+            return errorMessage;
+
+        } finally {
+
+            if(connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+
+    // AsyncTask to perform the DELETE communication
+    private class ExecuteDeleteRequest extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            return executeDelete(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            // Handle result if needed
+            handleResult(result);
+        }
+    }
+
+    public String executeDelete(String targetURL)
+    {
+        URL url;
+        HttpURLConnection connection = null;
+        Log.d(DEBUG_TAG, "executePost(): targetURL=" + targetURL);
+
+        try {
+            //Create connection
+            url = new URL(targetURL);
+            connection = (HttpURLConnection)url.openConnection();
+            connection.setRequestMethod("DELETE");
+            connection.setUseCaches(false);
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+
+
+            int http_status = connection.getResponseCode();
+            Log.d(DEBUG_TAG, "executeDelete(): http_status=" + http_status);
+
+            //Get Response
+            InputStream is = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            String line;
+            StringBuffer response = new StringBuffer();
+            while((line = rd.readLine()) != null) {
+                response.append(line);
+                response.append('\r');
+            }
+            rd.close();
+            return response.toString();
+
+        } catch (Exception e) {
+            String errorMessage =  e.toString();
+            Log.d(DEBUG_TAG, "executeDelete(): " + errorMessage);
+            return errorMessage;
+
+        } finally {
+
+            if(connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    private String generateRandomString() {
+        char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+        Random generator = new Random();
+        StringBuilder randomStringBuilder = new StringBuilder();
+        char tempChar;
+        for (int i = 0; i < 4; i++){
+            char c = chars[generator.nextInt(chars.length)];
+            randomStringBuilder.append(c);
+        }
+        return randomStringBuilder.toString();
+    }
+}
