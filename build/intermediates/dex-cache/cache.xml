@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="5ef8e13c6250f81608b3cab9c6c3023062b25369">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_5c11f3b9454fff3fa3951dbe0460875cdd6d7339/classes.dex" />
+    </item>
+    <item
+        jar="/Users/adil/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/23.4.0/support-annotations-23.4.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="ffbe55fdb2bb456b1485831706a9eac3300bb6b8">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/support-annotations-23.4.0_ea717a0f171361eeb534f3706b49e401684eab75/classes.dex" />
+    </item>
+    <item
+        jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/23.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-vector-drawable-23.4.0_1e4087ff0838ef9d91f41f67a07d3306df98512d/classes.dex" />
+    </item>
+    <item
+        jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/23.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="de4db3785756bfb0915a9f59a9b3f2fea7407be4">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-animated-vector-drawable-23.4.0_3d3c05cc66fd9dc23d3a02b9399381cf1682e432/classes.dex" />
+    </item>
+    <item
+        jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.4.0/jars/libs/internal_impl-23.4.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="ea3c07504d2c8f4b13aa17c45c1b68ed9c1c3674">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/internal_impl-23.4.0_8af68bfdcdaf7f9e230fb517aca5e8e4b0d5ebff/classes.dex" />
+    </item>
+    <item
+        jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="67bd36ee9340ec7c254108936ad16b24bed160cc">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-v4-23.4.0_b231863b6fc1a23b5e974c6d63e90b82b3fe191e/classes.dex" />
+    </item>
+    <item
+        jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="548f06de403a9409f00554b3ee12a9fdea0e236c">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-appcompat-v7-23.4.0_8d46314b36fd3ee2f138e4d15997052cc2603504/classes.dex" />
+    </item>
+    <item
+        jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="46eac100af681477db7f384956d5acaf013e405c">
+        <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_50fbde47f435cf622786db418e6b1d8024bd38d0/classes.dex" />
+    </item>
+
+</items>
