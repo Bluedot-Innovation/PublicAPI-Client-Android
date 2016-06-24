@@ -5,7 +5,7 @@
         jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
         jumboMode="true"
         revision="23.0.3"
-        sha1="5ef8e13c6250f81608b3cab9c6c3023062b25369">
+        sha1="bc34162a28c57f638497516fd1058023b00c26d7">
         <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_5c11f3b9454fff3fa3951dbe0460875cdd6d7339/classes.dex" />
     </item>
     <item
@@ -54,7 +54,7 @@
         jar="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
         jumboMode="true"
         revision="23.0.3"
-        sha1="46eac100af681477db7f384956d5acaf013e405c">
+        sha1="d41c440d33bc794a5c831dbb6297f961c50b2f3b">
         <dex dex="/Users/adil/GIT/PublicAPI-Client-Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_50fbde47f435cf622786db418e6b1d8024bd38d0/classes.dex" />
     </item>
 
