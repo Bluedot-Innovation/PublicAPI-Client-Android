@@ -39,6 +39,12 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="POST Custom Action with Custom Fields"
+        android:id="@+id/bPostCustomAction" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:text="DELETE Fence"
         android:id="@+id/bDeleteFence" />
 

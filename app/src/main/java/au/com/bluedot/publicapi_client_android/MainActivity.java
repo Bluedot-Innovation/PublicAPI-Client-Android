@@ -36,8 +36,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button bPostApp; //post App
     private Button bPostZone; //post Zone
     private Button bPostFence; //post Fen
-    private Button bPostMessageAction;
-    private Button bDeleteFence;
+    private Button bPostMessageAction; //post Message Action
+    private Button bDeleteFence;    //delete Fence
+    private Button bPostCustomAction;   //post Custom Action with Custom Data
 
     private String lastApiKey; // the key returned from backend for last created app; will be required to add zones
     private String zoneId= null; // Zone Id of the create Zone
@@ -54,11 +55,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bPostFence = (Button) findViewById(R.id.bPostFence);
         bPostMessageAction = (Button) findViewById(R.id.bPostMessageAction);
         bDeleteFence = (Button) findViewById(R.id.bDeleteFence);
+        bPostCustomAction = (Button) findViewById(R.id.bPostCustomAction);
         bPostApp.setOnClickListener(this);
         bPostZone.setOnClickListener(this);
         bPostFence.setOnClickListener(this);
         bPostMessageAction.setOnClickListener(this);
         bDeleteFence.setOnClickListener(this);
+        bPostCustomAction.setOnClickListener(this);
     }
 
     @Override
@@ -78,6 +81,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.bDeleteFence:
                 doDeleteFence();
+                break;
+            case R.id.bPostCustomAction:
+                doPostCustomAction();
                 break;
 
         }
@@ -189,6 +195,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tvLogView.setText("Error: apiKey not found");
         }
     }
+
+    /**
+     * Performs task of creating new Custom Action with Custom Data
+     */
+    private void doPostCustomAction() {
+        if(lastApiKey!=null){
+            if(zoneId!=null){
+                executePostCustomAction(CUSTOMER_API_KEY,lastApiKey,zoneId);
+            }
+            else{
+                tvLogView.setText("Error: zoneId not found");
+            }
+        }
+        else{
+            tvLogView.setText("Error: apiKey not found");
+        }
+    }
+
     /**
      * Performs task of deleting fence
      */
@@ -386,6 +410,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return result;
     }
 
+
+    /**
+     * The following code shows how to form the JSON request for POST Custom Action with Custom Data
+     * @param customerApiKey
+     * @param apiKey
+     * @param zoneId
+     * @return JSON String
+     */
+    private String generatePOSTCustomActionRequest(String customerApiKey, String apiKey, String zoneId){
+        String result = null;
+        // form the JSON string for request
+        try{
+            JSONObject customActionObject = new JSONObject();
+            customActionObject.put("name", "A Custom Action");
+            JSONArray customFieldsJsonArray = new JSONArray();
+            customActionObject.put("customFields",customFieldsJsonArray);
+            String[] keys = {"type", "name", "id"};
+            String[] values = {"Coffee Shop", "Blue Bottle Coffee", "48707775-4991-434b-ba3a-f41ac1236c44"};
+            JSONObject customFieldJsonObject;
+            for(int i = 0 ; i < keys.length ; i++) {
+                customFieldJsonObject = new JSONObject();
+                customFieldJsonObject.put("key", keys[i]);
+                customFieldJsonObject.put("value", values[i]);
+                customFieldsJsonArray.put(customFieldJsonObject);
+            }
+            JSONArray customActionArray = new JSONArray();
+            customActionArray.put(customActionObject);
+            JSONObject actionObject = new JSONObject();
+            actionObject.put("customActions",customActionArray);
+            JSONObject zoneObject = new JSONObject();
+            zoneObject.put("zoneId",zoneId);
+            zoneObject.put("actions", actionObject);
+            JSONObject contentObject = new JSONObject();
+            contentObject.put("zone", zoneObject);
+            JSONObject securityObject = new JSONObject();
+            securityObject.put("apiKey", apiKey);
+            securityObject.put("customerApiKey", customerApiKey);
+            JSONObject resultObject = new JSONObject();
+            resultObject.put("security", securityObject);
+            resultObject.put("content", contentObject);
+            result = resultObject.toString();
+        } catch (JSONException e){
+            Log.e(DEBUG_TAG, "generatePOSTCustomActionRequest(): " + e );
+        }
+        return result;
+    }
+
     /**
      * The following example shows how to form the URL for Deleting a Fence
      * @param customerApiKey
@@ -438,7 +509,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void executePostMessageAction(String customerApiKey, String apiKey, String zoneId) {
         String postData = generatePOSTMessageActionRequest(customerApiKey, apiKey, zoneId);
-        new ExecutePostRequest().execute(new String[]{PUBLICAPI_URL_MESSAGE_ACTION, postData} );
+        new ExecutePostRequest().execute(new String[]{PUBLICAPI_URL_ACTION, postData} );
+    }
+
+    /**
+     * Starts task for creating a new Custom Action with Custom Data
+     * @param customerApiKey
+     * @param lastApiKey
+     * @param zoneId
+     */
+    private void executePostCustomAction(String customerApiKey, String lastApiKey, String zoneId) {
+        String postData = generatePOSTCustomActionRequest(customerApiKey, lastApiKey, zoneId);
+        new ExecutePostRequest().execute(new String[]{PUBLICAPI_URL_ACTION, postData} );
     }
 
     /**
